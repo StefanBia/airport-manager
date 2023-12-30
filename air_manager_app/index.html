@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Information</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+
+  </style>
+</head>
+<body>
+  <h1>Flight Information</h1>
+  <div>Order by:
+    <button onclick="fetchDataLast('name')">Name</button>
+    <button onclick="fetchDataLast('id')">Id</button>
+    <button onclick="fetchDataLast('date')">Date</button></date>
+  </div>
+  <table id="flights-table">
+    <thead>
+      <tr>
+        <!-- Header columns will be dynamically inserted here -->
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Flight information will be dynamically inserted here -->
+    </tbody>
+  </table>
+
+  <div class="navigation-buttons">
+    <button onclick="fetchData('/flights');setLast('/flights')">Flights</button>
+    <button onclick="fetchData('/pilots');setLast('/pilots')">Pilots</button>
+    <button onclick="fetchData('/airports');setLast('/airports')">Airports</button>
+    <button onclick="fetchData('/persons');setLast('/persons')">Persons</button>
+    <button onclick="fetchData('/flight_companies');setLast('/flight_companies')">Flight Companies</button>
+    <button onclick="fetchData('/airplanes');setLast('/airplanes')">Airplanes</button>
+    <button onclick="fetchData('/flight_attendants');setLast('/flight_attendants')">Flight Attendants</button>
+    <button onclick="fetchData('/air_traffic_controllers');setLast('/air_traffic_controllers')">Air Traffic Controllers</button>
+    <button onclick="fetchData('/control_towers');setLast('/control_towers')">Control Towers</button>
+    <button onclick="fetchData('/runways');setLast('/runways')">Runways</button>
+  </div>
+
+  <script>
+    // Use JavaScript to fetch and display data for different categories
+    var last = '/flights';
+
+    function setLast(newLast){
+        last = newLast;
+    }
+
+    function fetchData(endpoint) {
+      fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+          const table = document.getElementById('flights-table');
+          const tbody = table.querySelector('tbody');
+
+          // Clear existing rows
+          tbody.innerHTML = '';
+
+          // Create header row with column names
+          const headerRow = table.querySelector('thead tr');
+          headerRow.innerHTML = ''; // Clear header row
+
+          Object.keys(data[0]).forEach(columnName => {
+            const th = document.createElement('th');
+            th.textContent = columnName;
+            headerRow.appendChild(th);
+          });
+
+          // Create rows with data
+          data.forEach(item => {
+            const row = tbody.insertRow();
+
+            // Populate cells with data
+            Object.entries(item).forEach(([key, value]) => {
+              const cell = row.insertCell();
+              cell.textContent = value;
+            });
+          });
+        })
+        .catch(error => console.error(`Error fetching data for ${endpoint}:`, error));
+    }
+
+    function fetchDataLast(type) {
+      fetch(`${last}/${type}`)
+        .then(response => response.json())
+        .then(data => {
+          const table = document.getElementById('flights-table');
+          const tbody = table.querySelector('tbody');
+
+          // Clear existing rows
+          tbody.innerHTML = '';
+
+          // Create header row with column names
+          const headerRow = table.querySelector('thead tr');
+          headerRow.innerHTML = ''; // Clear header row
+
+          Object.keys(data[0]).forEach(columnName => {
+            const th = document.createElement('th');
+            th.textContent = columnName;
+            headerRow.appendChild(th);
+          });
+
+          // Create rows with data
+          data.forEach(item => {
+            const row = tbody.insertRow();
+
+            // Populate cells with data
+            Object.entries(item).forEach(([key, value]) => {
+              const cell = row.insertCell();
+              cell.textContent = value;
+            });
+          });
+        })
+        .catch(error => console.error(`Error fetching data for ${endpoint}:`, error));
+    }
+
+  </script>
+</body>
+</html>
