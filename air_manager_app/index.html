@@ -9,6 +9,7 @@
       border-collapse: collapse;
       width: 100%;
       margin-top: 20px;
+      margin-bottom: 20px;
     }
 
     th, td {
@@ -21,6 +22,9 @@
       background-color: #f2f2f2;
     }
 
+    div {
+      margin-bottom: 20px;
+    }
 
   </style>
 </head>
@@ -34,6 +38,11 @@
   <div>Search by:
     <input name="searchTxt" type="text" maxlength="512" id="searchTxt" class="searchField"/>
     <button onclick="fetchWithSearch('srcn')">Name</button>
+  </div>
+  <div>Flight duration
+    <button onclick="fetchData('/flights/less4')">Less than 4h</button>
+    <button onclick="fetchData('/flights/bet46')">4h-6h</button>
+    <button onclick="fetchData('/flights/more6')">More than 6h</button>
   </div>
   <table id="flights-table">
     <thead>

@@ -56,25 +56,36 @@ app.get('/${last}/id', async (req, res) => {
 // Define routes for fetching data
 
 app.get('/flights', async (req, res) => {
-    fetchDataWithOrder(req, res, 'SELECT * FROM flight', 'flightid');
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid ', 'f.flightid');
 });
 
 app.get('/flights/id', async (req, res) => {
-    fetchDataWithOrder(req, res, 'SELECT * FROM flight', 'flightid');
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid ', 'f.flightid');
 });
 
 app.get('/flights/name', async (req, res) => {
-    fetchDataWithOrder(req, res, 'SELECT * FROM flight', 'flight_destination');
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid ', 'f.flight_destination');
 });
 
 app.get('/flights/date', async (req, res) => {
-    fetchDataWithOrder(req, res, 'SELECT * FROM flight', 'departure_date');
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid ', 'f.departure_date');
 });
 
 app.get('/flights/srcn/:term', async (req, res) => {
-    fetchDataByName(req, res,'SELECT * FROM flight WHERE flight_destination LIKE $1', 'flightid');
+    fetchDataByName(req, res,'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid  WHERE f.flight_destination LIKE $1', 'f.flightid');
 });
 
+app.get('/flights/less4', async (req, res) => {
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid  where f.duration < 4', 'f.departure_date');
+});
+
+app.get('/flights/bet46', async (req, res) => {
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid  where f.duration >= 4 and f.duration <= 6', 'f.departure_date');
+});
+
+app.get('/flights/more6', async (req, res) => {
+    fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid where f.duration > 6', 'f.departure_date');
+});
 
 // ----------------------------------------------------------
 
