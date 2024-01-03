@@ -31,6 +31,10 @@
     <button onclick="fetchDataLast('id')">Id</button>
     <button onclick="fetchDataLast('date')">Date</button></date>
   </div>
+  <div>Search by:
+    <input name="searchTxt" type="text" maxlength="512" id="searchTxt" class="searchField"/>
+    <button onclick="fetchWithSearch('srcn')">Name</button>
+  </div>
   <table id="flights-table">
     <thead>
       <tr>
@@ -58,9 +62,19 @@
   <script>
     // Use JavaScript to fetch and display data for different categories
     var last = '/flights';
+    var searchedElement = '';
 
     function setLast(newLast){
         last = newLast;
+    }
+
+    function searchURL(){
+      searchedElement = document.getElementById("searchTxt").value;
+    }
+
+    function fetchWithSearch(srcType){
+      searchURL();
+      fetchData(`${last}/${srcType}/${searchedElement}`);
     }
 
     function fetchData(endpoint) {

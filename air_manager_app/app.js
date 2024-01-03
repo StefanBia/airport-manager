@@ -31,6 +31,20 @@ async function fetchDataWithOrder(req, res, query, orderBy) {
     }
 }
 
+async function fetchDataByName(req, res, query, orderBy) {
+    const searchTerm = req.params.term;
+    // const query = 'SELECT * FROM flight WHERE flight_destination LIKE $1';
+
+    try {
+        const result = await pool.query(`${query} ORDER BY ${orderBy}`, [`%${searchTerm}%`]);
+        res.setHeader('Content-Type', 'application/json');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error executing query', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -57,6 +71,11 @@ app.get('/flights/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'SELECT * FROM flight', 'departure_date');
 });
 
+app.get('/flights/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res,'SELECT * FROM flight WHERE flight_destination LIKE $1', 'flightid');
+});
+
+
 // ----------------------------------------------------------
 
 app.get('/pilots', async (req, res) => {
@@ -73,6 +92,10 @@ app.get('/pilots/name', async (req, res) => {
 
 app.get('/pilots/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'select p2.first_name , p2.last_name, fc.company_name , p.salary , p.date_of_employment from pilot p join person p2 ON p.pilotid = p2.personid join flight_company fc on p.flight_companyid = fc.flight_companyid', 'p.date_of_employment');
+});
+
+app.get('/pilots/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res,'select p2.first_name , p2.last_name, fc.company_name , p.salary , p.date_of_employment from pilot p join person p2 ON p.pilotid = p2.personid join flight_company fc on p.flight_companyid = fc.flight_companyid where p2.first_name like $1', 'p.pilotid');
 });
 
 // ----------------------------------------------------------
@@ -93,6 +116,9 @@ app.get('/airports/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'SELECT * FROM airport', 'airportid');
 });
 
+app.get('/airports/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'SELECT * FROM airport where airport_name like $1', 'airportid');
+});
 // ----------------------------------------------------------
 
 app.get('/persons', async (req, res) => {
@@ -109,6 +135,10 @@ app.get('/persons/name', async (req, res) => {
 
 app.get('/persons/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'SELECT * FROM person', 'birthday');
+});
+
+app.get('/persons/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'SELECT * FROM person where last_name like $1', 'personid');
 });
 
 // ----------------------------------------------------------
@@ -129,6 +159,10 @@ app.get('/flight_companies/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'SELECT * FROM flight_company', 'flight_companyid');
 });
 
+app.get('/flight_companies/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'SELECT * FROM flight_company where company_name like $1', 'flight_companyid');
+});
+
 // ----------------------------------------------------------
 
 app.get('/airplanes', async (req, res) => {
@@ -145,6 +179,10 @@ app.get('/airplanes/name', async (req, res) => {
 
 app.get('/airplanes/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'SELECT a.airplane_model , a.airplane_nr_seats, fc.company_name FROM airplane a join flight_company fc on a.flight_companyid = fc.flight_companyid', 'a.airplaneid');
+});
+
+app.get('/airplanes/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'SELECT a.airplane_model , a.airplane_nr_seats, fc.company_name FROM airplane a join flight_company fc on a.flight_companyid = fc.flight_companyid where a.airplane_model like $1', 'a.airplaneid');
 });
 
 //---------------------------------------------------
@@ -165,6 +203,10 @@ app.get('/flight_attendants/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'select p.first_name , p.last_name , fa."role" , fc.company_name from flight_attendant fa join person p on fa.flight_attendantid = p.personid join flight_company fc on fc.flight_companyid = fa.flight_companyid', 'fa.flight_attendantid');
 });
 
+app.get('/flight_attendants/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'select p.first_name , p.last_name , fa."role" , fc.company_name from flight_attendant fa join person p on fa.flight_attendantid = p.personid join flight_company fc on fc.flight_companyid = fa.flight_companyid where p.last_name like $1', 'fa.flight_attendantid');
+});
+
 //----------------------------------------------------
 
 app.get('/air_traffic_controllers', async (req, res) => {
@@ -181,6 +223,10 @@ app.get('/air_traffic_controllers/name', async (req, res) => {
 
 app.get('/air_traffic_controllers/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
+});
+
+app.get('/air_traffic_controllers/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid where p.last_name like $1', 'atc.air_traffic_controllerid');
 });
 
 //------------------------------------
@@ -201,6 +247,10 @@ app.get('/control_towers/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'select ct.tower_number , a.airport_name from control_tower ct join airport a on ct.airportid = a.airportid', 'ct.control_towerid');
 });
 
+app.get('/control_towers/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'select ct.tower_number , a.airport_name from control_tower ct join airport a on ct.airportid = a.airportid where a.airport_name like $1', 'ct.control_towerid');
+});
+
 //-------------------------------------
 
 app.get('/runways', async (req, res) => {
@@ -217,6 +267,10 @@ app.get('/runways/name', async (req, res) => {
 
 app.get('/runways/date', async (req, res) => {
     fetchDataWithOrder(req, res, 'select r.runway_number , a.airport_name from runway r join airport a on a.airportid = r.airportid', 'r.runwayid');
+});
+
+app.get('/runways/srcn/:term', async (req, res) => {
+    fetchDataByName(req, res, 'select r.runway_number , a.airport_name from runway r join airport a on a.airportid = r.airportid where a.airport_name like $1', 'r.runwayid');
 });
 
 // Start the server
