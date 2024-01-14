@@ -2,6 +2,8 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 
+
+
 const app = express();
 const port = 3000;
 const last = "flights";
@@ -19,6 +21,7 @@ const pool = new Pool({
     port: 5432,
 });
 
+app.use(express.json());
 // Helper function to fetch data with optional ordering
 async function fetchDataWithOrder(req, res, query, orderBy) {
     try {
@@ -260,6 +263,74 @@ app.delete('/air_traffic_controllers/delete/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+async function updateAirTrafficController(req, res) {
+    const airTrafficControllerId = req.params.id;
+
+    // Fields to update
+    const updateFields = {
+        'weekly_hours': req.body.weekly_hours,
+        'control_towerid': req.body.control_towerid,
+    };
+
+    try {
+        // Build the SET clause for the update query
+        const setClause = Object.keys(updateFields).map((key, index) => {
+            return `${key} = $${index + 1}`;
+        }).join(', ');
+
+        // Prepare the values for the update query
+        const values = Object.values(updateFields);
+        values.push(airTrafficControllerId); // Add the airTrafficControllerId to the end of the values array
+
+        // Perform the update in the database using the airTrafficControllerId
+        const result = await pool.query(`UPDATE air_traffic_controller SET ${setClause} WHERE air_traffic_controllerid = $${values.length}`, values);
+
+        // Check if a row was affected to determine if the air traffic controller was successfully updated
+        if (result.rowCount > 0) {
+            res.status(200).json({ message: 'Air Traffic Controller updated successfully' });
+        } else {
+            res.status(404).json({ error: 'Air Traffic Controller not found' });
+        }
+    } catch (error) {
+        console.error('Error updating Air Traffic Controller', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+async function addAirTrafficController(req, res) {
+    const { air_traffic_controllerid, weekly_hours, control_towerid } = req.body;
+
+    try {
+        // Perform the insertion into the database
+        const result = await pool.query(
+            'INSERT INTO air_traffic_controller (air_traffic_controllerid, weekly_hours, control_towerid) VALUES ($1, $2, $3) RETURNING *',
+            [air_traffic_controllerid, weekly_hours, control_towerid]
+        );
+
+        // Check if the insertion was successful
+        if (result.rowCount > 0) {
+            res.status(201).json({ message: 'Air Traffic Controller added successfully', data: result.rows[0] });
+        } else {
+            res.status(500).json({ error: 'Failed to add Air Traffic Controller' });
+        }
+    } catch (error) {
+        console.error('Error adding Air Traffic Controller', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+
+
+// Route for updating an air traffic controller
+app.put('/air_traffic_controllers/update/:id', async (req, res) => {
+    await updateAirTrafficController(req, res);
+});
+
+app.post('/air_traffic_controllers/add', async(req,res) =>{
+    await addAirTrafficController(req,res);
+})
+
 
 //------------------------------------
 

@@ -64,6 +64,10 @@
       background-color: rgb(77, 14, 14);
     }
 
+    .update-button{
+      margin-top: 40px;
+    }
+
   </style>
 </head>
 <body>
@@ -104,6 +108,9 @@
     <button onclick="fetchData('/air_traffic_controllers');setLast('/air_traffic_controllers')">Air Traffic Controllers</button>
     <button onclick="fetchData('/control_towers');setLast('/control_towers')">Control Towers</button>
     <button onclick="fetchData('/runways');setLast('/runways')">Runways</button>
+    <div class="update-button">
+      <button onclick="openUpdateModal()">Add/Update</button>
+    </div>
 
     <div id="updateModal" class="modal">
       <div class="modal-content">
@@ -123,6 +130,7 @@
           <!-- Add more fields as needed -->
   
           <button type="button" onclick="updateAirTrafficController()">Update</button>
+          <button type="button" onclick="addAirTrafficController()">Add</button>
         </form>
       </div>
     </div>
@@ -188,6 +196,12 @@
               deleteButton.textContent = 'Delete';
               deleteButton.addEventListener('click', () => handleDeletePerson(item.air_traffic_controllerid));
               deleteCell.appendChild(deleteButton);
+
+              const updateCell = row.insertCell();
+              const updateButton = document.createElement('button');
+              updateButton.textContent = 'Update';
+              updateButton.addEventListener('click', () => openUpdateModal(item.air_traffic_controllerid, item.control_towerid, item.weekly_hours));
+              updateCell.appendChild(updateButton);
             }
       });
     })
@@ -241,16 +255,17 @@ function handleDeletePerson(personId) {
         .catch(error => console.error(`Error fetching data for ${endpoint}:`, error));
     }
 
-    function openUpdateModal(personId, name, email) {
+    function openUpdateModal(airTrafficControllerId, towerId, weeklyHours) {
       const modal = document.getElementById('updateModal');
       const updateForm = document.getElementById('updateForm');
       const updateIdInput = document.getElementById('updateId');
-      const updateEmailTower = document.getElementById('updateTower');
+      const updateTowerInput = document.getElementById('updateTower');
       const updateHoursInput = document.getElementById('updateHours');
 
       // Set the current data in the modal
-      updateNameInput.value = name;
-      updateEmailInput.value = email;
+      updateIdInput.value = airTrafficControllerId;
+      updateTowerInput.value = towerId;
+      updateHoursInput.value = weeklyHours;
 
       // Show the modal
       modal.style.display = 'block';
@@ -262,19 +277,73 @@ function handleDeletePerson(personId) {
       modal.style.display = 'none';
     }
 
-    // Function to handle the update process
-    function updateAirTrafficController() {
-      // Get the updated data from the form
-      const updatedName = document.getElementById('updateName').value;
-      const updatedEmail = document.getElementById('updateEmail').value;
+   // Function to handle the update process
+function updateAirTrafficController() {
+  // Get the updated data from the form
+  const updatedId = document.getElementById('updateId').value;
+  const updatedTower = document.getElementById('updateTower').value;
+  const updatedHours = document.getElementById('updateHours').value;
 
-      // Make an API call or perform the update logic here
-      // You can use the fetch API or any other method to send the updated data to your server
+  
+  fetch(`/air_traffic_controllers/update/${updatedId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      air_traffic_controllerid: updatedId,
+      control_towerid: updatedTower,
+      weekly_hours: updatedHours,
+      // Add more properties as needed
+    }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response from the server, e.g., show a success message
+      console.log('Update successful:', data);
 
-      // After the update is successful, close the modal and refresh the table
+      // Close the update modal
       closeUpdateModal();
-      fetchDataLast('id'); // Refresh the table
-    }
+
+      // Refresh the table
+      fetchDataLast('id');
+    })
+    .catch(error => console.error('Error updating air traffic controller:', error));
+}
+
+function addAirTrafficController() {
+  // Get the updated data from the form
+  const updatedId = document.getElementById('updateId').value;
+  const updatedTower = document.getElementById('updateTower').value;
+  const updatedHours = document.getElementById('updateHours').value;
+
+  
+  fetch(`/air_traffic_controllers/add`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      air_traffic_controllerid: updatedId,
+      control_towerid: updatedTower,
+      weekly_hours: updatedHours,
+      // Add more properties as needed
+    }),
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response from the server, e.g., show a success message
+      console.log('Update successful:', data);
+
+      // Close the update modal
+      closeUpdateModal();
+
+      // Refresh the table
+      fetchDataLast('id');
+    })
+    .catch(error => console.error('Error updating air traffic controller:', error));
+}
+
 
   </script>
 </body>
