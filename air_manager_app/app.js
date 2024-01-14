@@ -87,6 +87,7 @@ app.get('/flights/more6', async (req, res) => {
     fetchDataWithOrder(req, res, 'SELECT f.*, a.airport_name  FROM flight f join runway r ON r.runwayid = f.runwayid join airport a on a.airportid = r.airportid where f.duration > 6', 'f.departure_date');
 });
 
+
 // ----------------------------------------------------------
 
 app.get('/pilots', async (req, res) => {
@@ -221,23 +222,43 @@ app.get('/flight_attendants/srcn/:term', async (req, res) => {
 //----------------------------------------------------
 
 app.get('/air_traffic_controllers', async (req, res) => {
-    fetchDataWithOrder(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
+    fetchDataWithOrder(req, res, 'select atc.air_traffic_controllerid, p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
 });
 
 app.get('/air_traffic_controllers/id', async (req, res) => {
-    fetchDataWithOrder(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
+    fetchDataWithOrder(req, res, 'select atc.air_traffic_controllerid, p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
 });
 
 app.get('/air_traffic_controllers/name', async (req, res) => {
-    fetchDataWithOrder(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'p.last_name');
+    fetchDataWithOrder(req, res, 'select atc.air_traffic_controllerid, p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'p.last_name');
 });
 
 app.get('/air_traffic_controllers/date', async (req, res) => {
-    fetchDataWithOrder(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
+    fetchDataWithOrder(req, res, 'select atc.air_traffic_controllerid, p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid', 'atc.air_traffic_controllerid');
 });
 
 app.get('/air_traffic_controllers/srcn/:term', async (req, res) => {
-    fetchDataByName(req, res, 'select p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid where p.last_name like $1', 'atc.air_traffic_controllerid');
+    fetchDataByName(req, res, 'select atc.air_traffic_controllerid, p.first_name , p.last_name , atc.weekly_hours , ct.tower_number , a.airport_name from air_traffic_controller atc join person p on p.personid = atc.air_traffic_controllerid join control_tower ct on ct.control_towerid = atc.control_towerid join airport a on a.airportid = ct.airportid where p.last_name like $1', 'atc.air_traffic_controllerid');
+});
+
+app.delete('/air_traffic_controllers/delete/:id', async (req, res) => {
+    const flightId = req.params.id;
+
+    try {
+        // Perform the deletion in the database using the flightId
+    
+        const result = await pool.query('DELETE FROM air_traffic_controller WHERE air_traffic_controllerid = $1', [flightId]);
+       
+        // Check if a row was affected to determine if the flight was successfully deleted
+        if (result.rowCount > 0) {
+            res.status(200).json({ message: 'Person deleted successfully' });
+        } else {
+            res.status(404).json({ error: 'Person not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting person', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 //------------------------------------

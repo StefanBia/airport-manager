@@ -104,6 +104,28 @@
     <button onclick="fetchData('/air_traffic_controllers');setLast('/air_traffic_controllers')">Air Traffic Controllers</button>
     <button onclick="fetchData('/control_towers');setLast('/control_towers')">Control Towers</button>
     <button onclick="fetchData('/runways');setLast('/runways')">Runways</button>
+
+    <div id="updateModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeUpdateModal()">&times;</span>
+        <h2>Update Air Traffic Controller</h2>
+        <form id="updateForm">
+          <!-- Add input fields for updating data -->
+          <label for="updateId">ID:</label>
+          <input type="number" id="updateId" name="updateId" required>
+  
+          <label for="updateTower">Tower ID:</label>
+          <input type="number " id="updateTower" name="updateTower" required>
+
+          <label for="updateHours">Hours:</label>
+          <input type="number" id="updateHours" name="updateHours" required>
+  
+          <!-- Add more fields as needed -->
+  
+          <button type="button" onclick="updateAirTrafficController()">Update</button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -124,39 +146,66 @@
       fetchData(`${last}/${srcType}/${searchedElement}`);
     }
 
-    function fetchData(endpoint) {
-      fetch(endpoint)
-        .then(response => response.json())
-        .then(data => {
-          const table = document.getElementById('flights-table');
-          const tbody = table.querySelector('tbody');
+    function fetchData(endpoint, method = 'GET') {
+  fetch(endpoint, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json', // You can adjust headers based on your server requirements
+    },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const table = document.getElementById('flights-table');
+      const tbody = table.querySelector('tbody');
 
-          // Clear existing rows
-          tbody.innerHTML = '';
+      // Clear existing rows
+      tbody.innerHTML = '';
 
-          // Create header row with column names
-          const headerRow = table.querySelector('thead tr');
-          headerRow.innerHTML = ''; // Clear header row
+      // Create header row with column names
+      const headerRow = table.querySelector('thead tr');
+      headerRow.innerHTML = ''; // Clear header row
 
-          Object.keys(data[0]).forEach(columnName => {
-            const th = document.createElement('th');
-            th.textContent = columnName;
-            headerRow.appendChild(th);
-          });
+      Object.keys(data[0]).forEach(columnName => {
+        const th = document.createElement('th');
+        th.textContent = columnName;
+        headerRow.appendChild(th);
+      });
 
-          // Create rows with data
-          data.forEach(item => {
-            const row = tbody.insertRow();
+      // Create rows with data
+      data.forEach(item => {
+        const row = tbody.insertRow();
 
-            // Populate cells with data
-            Object.entries(item).forEach(([key, value]) => {
-              const cell = row.insertCell();
-              cell.textContent = value;
-            });
-          });
-        })
-        .catch(error => console.error(`Error fetching data for ${endpoint}:`, error));
-    }
+        // Populate cells with data
+        Object.entries(item).forEach(([key, value]) => {
+          const cell = row.insertCell();
+          cell.textContent = value;
+        });
+
+        // Add a delete button with an event listener
+        if (last === '/air_traffic_controllers') {
+              const deleteCell = row.insertCell();
+              const deleteButton = document.createElement('button');
+              deleteButton.textContent = 'Delete';
+              deleteButton.addEventListener('click', () => handleDeletePerson(item.air_traffic_controllerid));
+              deleteCell.appendChild(deleteButton);
+            }
+      });
+    })
+    .catch(error => console.error(`Error fetching data for ${endpoint}:`, error));
+}
+
+
+function handleDeletePerson(personId) {
+  const confirmation = confirm('Are you sure you want to delete this person?');
+
+  if (confirmation) {
+    fetchData(`/air_traffic_controllers/delete/${personId}`, 'DELETE')
+      .then(() => fetchDataLast('id')) // Refresh the table after deletion
+      .catch(error => console.error(`Error deleting person with ID ${personId}:`, error));
+  }
+}
+
+
 
     function fetchDataLast(type) {
       fetch(`${last}/${type}`)
@@ -190,6 +239,41 @@
           });
         })
         .catch(error => console.error(`Error fetching data for ${endpoint}:`, error));
+    }
+
+    function openUpdateModal(personId, name, email) {
+      const modal = document.getElementById('updateModal');
+      const updateForm = document.getElementById('updateForm');
+      const updateIdInput = document.getElementById('updateId');
+      const updateEmailTower = document.getElementById('updateTower');
+      const updateHoursInput = document.getElementById('updateHours');
+
+      // Set the current data in the modal
+      updateNameInput.value = name;
+      updateEmailInput.value = email;
+
+      // Show the modal
+      modal.style.display = 'block';
+    }
+
+    // Function to close the update modal
+    function closeUpdateModal() {
+      const modal = document.getElementById('updateModal');
+      modal.style.display = 'none';
+    }
+
+    // Function to handle the update process
+    function updateAirTrafficController() {
+      // Get the updated data from the form
+      const updatedName = document.getElementById('updateName').value;
+      const updatedEmail = document.getElementById('updateEmail').value;
+
+      // Make an API call or perform the update logic here
+      // You can use the fetch API or any other method to send the updated data to your server
+
+      // After the update is successful, close the modal and refresh the table
+      closeUpdateModal();
+      fetchDataLast('id'); // Refresh the table
     }
 
   </script>
